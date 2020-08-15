@@ -16,7 +16,8 @@ class UrlSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Url
         fields = '__all__'
-        read_only_fields = '__all__'
+        # view control
+        # read_only_fields = '__all__'
 
 
 class RequestSerializer(serializers.ModelSerializer):
@@ -24,7 +25,8 @@ class RequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Request
         fields = '__all__'
-        read_only_fields = '__all__'
+        # view control
+        # read_only_fields = '__all__'
 
 
 class ResponseSerializer(serializers.ModelSerializer):
@@ -32,4 +34,5 @@ class ResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Response
         fields = '__all__'
-        read_only_fields = '__all__'
+        # view control
+        # read_only_fields = '__all__'

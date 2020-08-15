@@ -15,9 +15,38 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+from raw.urls import router as raw_router
+from normal.urls import router as normal_router
+from utils.routers import DefaultRouter
+
+# router
+router = DefaultRouter()
+router.extend(raw_router)
+router.extend(normal_router)
+
+
+# swagger schema
+schema_view = get_schema_view(
+    openapi.Info(
+        title="NEAT API",
+        default_version='v1',
+        description="Save HTTP flow and make website structure clear.",
+        terms_of_service="https://github.com/yywing/neat",
+    ),
+    public=True,
+)
+schema_url = [
+    path(r'swagger(?P<format>\.json|\.yaml)', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path(r'swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path(r'redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+]
+
 
 urlpatterns = [
+    *schema_url,
     path('admin/', admin.site.urls),
-    path('api/', include("raw.urls")),
-    path('api/', include("normal.urls")),
+    path('api/', include(router.urls)),
 ]
