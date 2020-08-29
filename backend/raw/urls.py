@@ -1,5 +1,5 @@
 from raw import views
-from utils.routers import DefaultRouter
+from utils.rest.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'raw', views.RawViewSet, basename='raw')

@@ -1,5 +1,5 @@
 from normal import views
-from utils.routers import DefaultRouter
+from utils.rest.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register(r'param', views.ParamViewSet, basename='param')

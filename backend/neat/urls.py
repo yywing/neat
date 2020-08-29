@@ -20,7 +20,7 @@ from drf_yasg import openapi
 
 from raw.urls import router as raw_router
 from normal.urls import router as normal_router
-from utils.routers import DefaultRouter
+from utils.rest.routers import DefaultRouter
 
 # router
 router = DefaultRouter()

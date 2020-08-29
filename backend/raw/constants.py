@@ -1,9 +1,9 @@
 from enum import Enum
 
 
-class SchemaEnum(Enum):
-    HTTP = 'http://'
-    HTTPS = "https://"
+class SchemeEnum(Enum):
+    HTTP = 'http'
+    HTTPS = "https"
 
 
 class RequestMethodEnum(Enum):
@@ -25,7 +25,7 @@ class RequestMethodEnum(Enum):
 
 
 class RequestTypeEnum(Enum):
-    NOEMAL = "normal"
+    NORMAL = "normal"
     GRAPHQL = "graphql"
 
 

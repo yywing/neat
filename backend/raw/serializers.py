@@ -1,9 +1,12 @@
 from rest_framework import serializers
 
 from raw import models
+from utils.rest.fields import Base64CharField
 
 
 class RawSerializer(serializers.ModelSerializer):
+    raw_request = Base64CharField(max_length=5 * 1024)
+    raw_response = Base64CharField(max_length=1024 * 1024, required=False)
 
     class Meta:
         model = models.Raw

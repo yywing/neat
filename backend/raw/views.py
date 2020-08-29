@@ -1,5 +1,5 @@
 from raw import serializers, models
-from utils import viewsets
+from utils.rest import viewsets
 # Create your views here.
 
 
