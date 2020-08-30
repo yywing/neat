@@ -60,7 +60,7 @@ func NewNeatClient(baseUrl string, client *http.Client) *NeatClient {
 	}
 }
 
-func (c *NeatClient) send(ctx context.Context, method, uri string, headers map[string]string, request Request, response Response) error {
+func (c *NeatClient) send(ctx context.Context, method, uri string, exceptStatusCode int, headers map[string]string, request Request, response Response) error {
 	url := JoinURL(c.BaseURL, uri)
 	//fmt.Printf("%s %s \n", method, url)
 	reader, err := request.ToPostData()
@@ -78,7 +78,7 @@ func (c *NeatClient) send(ctx context.Context, method, uri string, headers map[s
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != exceptStatusCode {
 		return fmt.Errorf("resp status code error: %v", resp.StatusCode)
 	}
 	err = response.ToStruct(resp.Body)

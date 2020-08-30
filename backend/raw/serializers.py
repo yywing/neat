@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from raw import models
+from utils.http import parse_request
 from utils.rest.fields import Base64CharField
 
 
@@ -12,6 +13,17 @@ class RawSerializer(serializers.ModelSerializer):
         model = models.Raw
         fields = '__all__'
         read_only_fields = ['url']
+
+    def create(self, validated_data):
+        request = parse_request(
+            validated_data['scheme'],
+            validated_data['host'],
+            validated_data['port'],
+            validated_data['raw_request'],
+        )
+        u = models.Url.from_request(request)
+        validated_data["url_id"] = u.id
+        return super().create(validated_data)
 
 
 class UrlSerializer(serializers.ModelSerializer):

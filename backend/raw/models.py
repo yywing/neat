@@ -37,7 +37,7 @@ class Raw(models.Model):
         return parse_response(self.raw_response, self.request)
 
     @property
-    def url(self):
+    def url_str(self):
         return self.request_object.url
 
     @property
@@ -56,7 +56,7 @@ class Url(models.Model):
     host = models.CharField(max_length=255, editable=False)
     port = models.IntegerField(validators=[validators.MaxValueValidator(65535), validators.MinValueValidator(1)], editable=False)
     path = models.CharField(max_length=255, editable=False)
-    url = models.CharField(max_length=255, editable=False)
+    url = models.CharField(max_length=255, editable=False, unique=True)
     suffix = models.CharField(max_length=255, editable=False)
 
     class Meta:
@@ -64,14 +64,17 @@ class Url(models.Model):
 
     @classmethod
     def from_request(cls, request: RequestObject):
-        return cls(
-            scheme=request.scheme,
-            host=request.host,
-            port=request.port,
-            path=request.path,
+        u, _ = cls.objects.get_or_create(
             url=request.pure_url,
-            suffix=request.suffix
+            defaults=dict(
+                scheme=request.scheme,
+                host=request.host,
+                port=request.port,
+                path=request.path,
+                suffix=request.suffix
+            )
         )
+        return u
 
 
 class Request(models.Model):
@@ -104,6 +107,9 @@ class Request(models.Model):
 
     class Meta:
         ordering = ['url', ]
+        constraints = [
+            models.UniqueConstraint(fields=['url', 'raw'], name='unique_request')
+        ]
 
     @classmethod
     def from_request(cls, url_id, raw_id, request: RequestObject, request_type=RequestTypeEnum.NORMAL.value):
@@ -152,6 +158,9 @@ class Response(models.Model):
 
     class Meta:
         ordering = ['url', ]
+        constraints = [
+            models.UniqueConstraint(fields=['url', 'raw'], name='unique_response')
+        ]
 
     @classmethod
     def from_response(cls, url_id, raw_id, request_id, response: ResponseObject, response_type=ResponseTypeEnum.PlAIN.value):
