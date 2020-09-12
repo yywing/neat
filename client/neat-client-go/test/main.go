@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"neat-client-go/client"
 	"net/http"
+
+	client "github.com/yywing/neat/client/neat-client-go"
 )
 
 func main() {

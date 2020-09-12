@@ -22,7 +22,7 @@ var (
 type CreateRawRequest struct {
 	BaseRequest
 	RawRequest  string `json:"raw_request"`
-	RawResponse string `json:"raw_response"`
+	RawResponse string `json:"raw_response,omitempty"`
 	Scheme      Scheme `json:"scheme"`
 	Host        string `json:"host"`
 	Port        uint16 `json:"port"`
@@ -36,12 +36,12 @@ type RawResponse struct {
 	BaseResponse
 	Id          int64  `json:"id"`
 	RawRequest  string `json:"raw_request"`
-	RawResponse string `json:"raw_response"`
+	RawResponse string `json:"raw_response,omitempty"`
 	Scheme      Scheme `json:"scheme"`
 	Host        string `json:"host"`
 	Port        uint16 `json:"port"`
 	CreatedTime string `json:"created_time"`
-	URL         int64  `url`
+	URL         int64  `json:"url"`
 }
 
 func (r *RawResponse) ToStruct(reader io.Reader) error {

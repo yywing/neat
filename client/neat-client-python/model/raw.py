@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 from http import HTTPStatus
 from os.path import join
 
@@ -7,7 +7,7 @@ from . import BaseModel, HTTPMethod, API_PREFIX
 
 class CreateRawRequest(NamedTuple):
     raw_request: str
-    raw_response: str
+    raw_response: Optional[str]
     scheme: str
     host: str
     port: int
@@ -17,7 +17,7 @@ class RawRespose(NamedTuple):
     id: int
     url: int
     raw_request: str
-    raw_response: str
+    raw_response: Optional[str]
     scheme: str
     host: str
     port: int
