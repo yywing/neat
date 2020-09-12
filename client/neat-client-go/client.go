@@ -79,7 +79,7 @@ func (c *NeatClient) send(ctx context.Context, method, uri string, exceptStatusC
 		return err
 	}
 	if resp.StatusCode != exceptStatusCode {
-		return fmt.Errorf("resp status code error: %v", resp.StatusCode)
+		return fmt.Errorf("want status code %v, but got %v. response content: %s", exceptStatusCode, resp.StatusCode, resp.Body)
 	}
 	err = response.ToStruct(resp.Body)
 	if err != nil {

@@ -28,6 +28,6 @@ class BaseModel:
 
     def from_response(self, response: Response):
         if response.status_code != self.status_code:
-            raise UnexpectedStatusCode(params=[self.status_code, response.status_code])
+            raise UnexpectedStatusCode(params=[self.status_code, response.status_code, response.content])
         data = response.json()
         return self.response_class(**data)

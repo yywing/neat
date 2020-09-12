@@ -4,7 +4,7 @@ from typing import List
 
 class ErrorMessageEnum(Enum): 
     UNHANDLED_ERROR = '内部服务器错误:{}'
-    UNEXPECTED_STATUS_CODE = "want status code {}, but got {}"
+    UNEXPECTED_STATUS_CODE = "want status code {}, but got {}. response content: {}"
 
 
 class NeatClientBaseException(Exception):
