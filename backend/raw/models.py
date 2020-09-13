@@ -1,12 +1,20 @@
+from logging import getLogger
+
 from django.db import models
 from django.core import validators
+from django.dispatch import receiver
 
-from raw.constants import SchemeEnum, RequestMethodEnum, RequestTypeEnum, ResponseTypeEnum
+from raw.constants import SchemeEnum, RequestMethodEnum
 from utils.http import (
+    RequestTypeEnum, ResponseTypeEnum,
     parse_request, parse_response,
-    Request as RequestObject, Response as ResponseObject
+    Request as RequestObject, Response as ResponseObject,
+    headers_to_list, list_to_headers
 )
 # Create your models here.
+
+
+logger = getLogger("raw")
 
 
 class Raw(models.Model):
@@ -34,6 +42,8 @@ class Raw(models.Model):
 
     @property
     def response_object(self):
+        if not self.raw_response:
+            return None
         return parse_response(self.raw_response, self.request)
 
     @property
@@ -64,7 +74,7 @@ class Url(models.Model):
 
     @classmethod
     def from_request(cls, request: RequestObject):
-        u, _ = cls.objects.get_or_create(
+        i, _ = cls.objects.get_or_create(
             url=request.pure_url,
             defaults=dict(
                 scheme=request.scheme,
@@ -74,7 +84,7 @@ class Url(models.Model):
                 suffix=request.suffix
             )
         )
-        return u
+        return i
 
 
 class Request(models.Model):
@@ -101,7 +111,7 @@ class Request(models.Model):
     request_type = models.CharField(
         max_length=255,
         choices=REQUEST_TYPE,
-        default=RequestTypeEnum.NORMAL.value,
+        default=RequestTypeEnum.other.value,
         help_text="请求类型"
     )
 
@@ -112,15 +122,18 @@ class Request(models.Model):
         ]
 
     @classmethod
-    def from_request(cls, url_id, raw_id, request: RequestObject, request_type=RequestTypeEnum.NORMAL.value):
-        return cls(
+    def from_request(cls, url_id, raw_id, request: RequestObject, request_type: str):
+        i, _ = cls.objects.get_or_create(
             url_id=url_id,
             raw_id=raw_id,
-            method=request.method,
-            request_headers=request.headers,
-            request_body=request.content,
-            request_type=request_type,
+            defaults=dict(
+                method=request.method,
+                request_headers=headers_to_list(request.headers),
+                request_body=request.content,
+                request_type=request_type,
+            )
         )
+        return i
 
     @property
     def request(self):
@@ -130,8 +143,10 @@ class Request(models.Model):
             port=self.url.port,
             path=self.url.path,
             method=self.method,
-            headers=self.request_headers,
-            content=self.request_type,
+            headers=list_to_headers(self.request_headers),
+            content=self.request_body,
+            first_line_format="relative",
+            http_version="HTTP/1.1"
         )
 
 
@@ -152,32 +167,62 @@ class Response(models.Model):
     response_type = models.CharField(
         max_length=255,
         choices=RESPONSE_TYPE,
-        default=ResponseTypeEnum.PlAIN.value,
+        default=ResponseTypeEnum.other.value,
         help_text="响应类型"
     )
 
     class Meta:
         ordering = ['url', ]
         constraints = [
-            models.UniqueConstraint(fields=['url', 'raw'], name='unique_response')
+            models.UniqueConstraint(fields=['url', 'raw', 'request'], name='unique_response')
         ]
 
     @classmethod
-    def from_response(cls, url_id, raw_id, request_id, response: ResponseObject, response_type=ResponseTypeEnum.PlAIN.value):
-        return cls(
+    def from_response(cls, url_id, raw_id, request_id, response: ResponseObject, response_type: str):
+        i, _ = cls.objects.get_or_create(
             url_id=url_id,
             raw_id=raw_id,
             request_id=request_id,
-            response_type=response_type,
-            status_code=response.status_code,
-            response_header=response.headers,
-            response_body=response.content,
+            defaults=dict(
+                response_type=response_type,
+                status_code=response.status_code,
+                response_header=headers_to_list(response.headers),
+                response_body=response.content,
+            )
         )
+        return i
 
     @property
     def response(self):
         return ResponseObject(
             status_code=self.status_code,
-            headers=self.request_headers,
+            headers=list_to_headers(self.request_headers),
             content=self.request_type,
         )
+
+
+# singals
+@receiver(models.signals.post_save, sender=Raw)
+def raw_post_created(
+    sender, instance: Raw, created: bool, **kwargs
+):
+    if not created:
+        return
+    request_object = instance.request_object
+    # create request
+    request = Request.from_request(
+        instance.url_id,
+        instance.id,
+        request_object,
+        request_object.request_type,
+    )
+    logger.info("create request {}:{} {} with type {}", request.id, request.method, request_object.pure_url, request.request_type)
+    # create response
+    if instance.raw_response:
+        response = Response.from_response(
+            instance.url_id,
+            instance.id,
+            request.id,
+            instance.response_object.response_type,
+        )
+        logger.info("create response for request {} with type {}", request.id, response.response_type)

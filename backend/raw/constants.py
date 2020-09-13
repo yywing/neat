@@ -22,19 +22,3 @@ class RequestMethodEnum(Enum):
     UNLINK = "UNLINK"
     WRAPPED = "WRAPPED"
     EXTENSION_METHOD = "EXTENSION_METHOD"
-
-
-class RequestTypeEnum(Enum):
-    NORMAL = "normal"
-    GRAPHQL = "graphql"
-
-
-class ResponseTypeEnum(Enum):
-    HTML = "html"
-    PlAIN = "plain"
-    CSS = "css"
-    JS = "js"
-    FONT = "font"
-    IMG = "img"
-    JSON = "json"
-    JSONP = "jsonp"
