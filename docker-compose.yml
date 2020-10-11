@@ -8,6 +8,9 @@ services:
     container_name: api
     volumes:
       - "./data:/app/data"
+      - "./env:/app/env"
+    env_file:
+      - env
     restart: always
   
   nginx:

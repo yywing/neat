@@ -3,7 +3,7 @@ import json
 from urllib.parse import urljoin
 
 from requests import Request, Response
-from exceptions import UnexpectedStatusCode
+from ..exceptions import UnexpectedStatusCode
 
 
 API_PREFIX = "/api/"

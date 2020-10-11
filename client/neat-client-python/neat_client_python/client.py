@@ -1,8 +1,8 @@
 from copy import deepcopy
 from requests import Request, Session
-from model import HTTPSchema
-from model.raw import CreateRaw, CreateRawRequest, RawRespose
-from model.token import Token, VerifyToken, TokenRespose, GetTokenRequest, VerifyTokenRequest
+from .model import HTTPSchema
+from .model.raw import CreateRaw, CreateRawRequest, RawRespose
+from .model.token import Token, VerifyToken, TokenRespose, GetTokenRequest, VerifyTokenRequest
 
 
 DEFAULT_HEADERS = {"Content-Type": "application/json"}
