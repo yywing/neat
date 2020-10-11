@@ -21,7 +21,6 @@ class NeatClient():
             request.headers["Authorization"] = "JWT " + token
         prepped = self.session.prepare_request(request)
         resp = self.session.send(prepped, timeout=timeout)
-        print(resp.content)
         return resp
 
     def auth(self):

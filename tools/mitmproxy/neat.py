@@ -26,11 +26,12 @@ class Neat:
             default="",
             help="neat server password",
         )
-        self.client = client.NeatClient(
-            ctx.options.neat_url, ctx.options.neat_username, ctx.options.neat_password
-        )
 
     def response(self, flow: mitmproxy.http.HTTPFlow):
+        if not hasattr(self, "client"):
+            self.client = client.NeatClient(
+                ctx.options.neat_url, ctx.options.neat_username, ctx.options.neat_password
+            )
         data = client.CreateRaw.request_class(
             raw_request=base64.b64encode(
                 assemble.assemble_request(flow.request)
@@ -42,8 +43,7 @@ class Neat:
             host=flow.request.host,
             port=flow.request.port,
         )
-        resp_data = self.client.create_raw(data)
-        print(resp_data)
+        self.client.create_raw(data)
 
 
 addons = [
