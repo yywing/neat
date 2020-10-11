@@ -26,12 +26,15 @@ class Raw(models.Model):
 
     scheme = models.CharField(choices=SCHEME, max_length=255)
     host = models.CharField(max_length=255)
-    port = models.IntegerField(validators=[validators.MaxValueValidator(65535), validators.MinValueValidator(1)])
+    port = models.IntegerField(validators=[validators.MaxValueValidator(
+        65535), validators.MinValueValidator(1)])
     raw_request = models.BinaryField(max_length=5 * 1024, help_text="原始请求")
-    raw_response = models.BinaryField(max_length=1024 * 1024, null=True, blank=False, help_text="原始响应")
+    raw_response = models.BinaryField(
+        max_length=1024 * 1024, null=True, blank=False, help_text="原始响应")
     created_time = models.DateTimeField(auto_now_add=True)
 
-    url = models.ForeignKey("Url", on_delete=models.CASCADE, related_name="raws")
+    url = models.ForeignKey(
+        "Url", on_delete=models.CASCADE, related_name="raws")
 
     class Meta:
         ordering = ['-created_time', ]
@@ -64,7 +67,8 @@ class Url(models.Model):
 
     scheme = models.CharField(choices=SCHEME, max_length=255, editable=False)
     host = models.CharField(max_length=255, editable=False)
-    port = models.IntegerField(validators=[validators.MaxValueValidator(65535), validators.MinValueValidator(1)], editable=False)
+    port = models.IntegerField(validators=[validators.MaxValueValidator(
+        65535), validators.MinValueValidator(1)], editable=False)
     path = models.CharField(max_length=255, editable=False)
     url = models.CharField(max_length=255, editable=False, unique=True)
     suffix = models.CharField(max_length=255, editable=False)
@@ -97,8 +101,10 @@ class Request(models.Model):
         for enum_item in RequestMethodEnum.__members__.values()
     ])
 
-    url = models.ForeignKey("Url", editable=False, on_delete=models.CASCADE, related_name="requests")
-    raw = models.OneToOneField("Raw", on_delete=models.CASCADE, related_name="request")
+    url = models.ForeignKey("Url", editable=False,
+                            on_delete=models.CASCADE, related_name="requests")
+    raw = models.OneToOneField(
+        "Raw", on_delete=models.CASCADE, related_name="request")
 
     method = models.CharField(
         max_length=255,
@@ -107,7 +113,8 @@ class Request(models.Model):
         help_text="请求方法"
     )
     request_headers = models.JSONField(editable=False, help_text="原始请求")
-    request_body = models.BinaryField(max_length=5 * 1024, editable=False, help_text="请求 body")
+    request_body = models.BinaryField(
+        max_length=5 * 1024, editable=False, help_text="请求 body")
     request_type = models.CharField(
         max_length=255,
         choices=REQUEST_TYPE,
@@ -118,7 +125,8 @@ class Request(models.Model):
     class Meta:
         ordering = ['url', ]
         constraints = [
-            models.UniqueConstraint(fields=['url', 'raw'], name='unique_request')
+            models.UniqueConstraint(
+                fields=['url', 'raw'], name='unique_request')
         ]
 
     @classmethod
@@ -157,13 +165,17 @@ class Response(models.Model):
         for enum_item in ResponseTypeEnum.__members__.values()
     ])
 
-    url = models.ForeignKey("Url", editable=False, on_delete=models.CASCADE, related_name="response")
-    raw = models.OneToOneField("Raw", on_delete=models.CASCADE, related_name="response")
-    request = models.OneToOneField("Request", on_delete=models.CASCADE, related_name="response")
+    url = models.ForeignKey("Url", editable=False,
+                            on_delete=models.CASCADE, related_name="response")
+    raw = models.OneToOneField(
+        "Raw", on_delete=models.CASCADE, related_name="response")
+    request = models.OneToOneField(
+        "Request", on_delete=models.CASCADE, related_name="response")
 
     status_code = models.IntegerField(editable=False, help_text="响应码")
     response_header = models.JSONField(editable=False, help_text="原始请求")
-    response_body = models.BinaryField(max_length=5 * 1024, editable=False, help_text="响应 body")
+    response_body = models.BinaryField(
+        max_length=5 * 1024, editable=False, help_text="响应 body")
     response_type = models.CharField(
         max_length=255,
         choices=RESPONSE_TYPE,
@@ -174,7 +186,8 @@ class Response(models.Model):
     class Meta:
         ordering = ['url', ]
         constraints = [
-            models.UniqueConstraint(fields=['url', 'raw', 'request'], name='unique_response')
+            models.UniqueConstraint(
+                fields=['url', 'raw', 'request'], name='unique_response')
         ]
 
     @classmethod
@@ -216,13 +229,16 @@ def raw_post_created(
         request_object,
         request_object.request_type,
     )
-    logger.info("create request {}:{} {} with type {}", request.id, request.method, request_object.pure_url, request.request_type)
+    logger.info("create request {}:{} {} with type {}", request.id,
+                request.method, request_object.pure_url, request.request_type)
     # create response
     if instance.raw_response:
         response = Response.from_response(
             instance.url_id,
             instance.id,
             request.id,
+            instance.response_object,
             instance.response_object.response_type,
         )
-        logger.info("create response for request {} with type {}", request.id, response.response_type)
+        logger.info("create response for request {} with type {}",
+                    request.id, response.response_type)
