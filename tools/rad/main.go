@@ -26,6 +26,8 @@ var (
 	buildstamp = "undefined"
 	filePath   = ""
 	url        = ""
+	username   = ""
+	password   = ""
 )
 
 type RadOutput struct {
@@ -67,7 +69,7 @@ func send(r *RadOutput) {
 		return
 	}
 	c := &http.Client{}
-	neatClient := client.NewNeatClient(url, c)
+	neatClient := client.NewNeatClient(url, username, password, c)
 	neatReq := &client.CreateRawRequest{
 		RawRequest: base64.StdEncoding.EncodeToString(rawRequest),
 		Scheme:     client.Scheme(req.URL.Scheme),
@@ -75,7 +77,7 @@ func send(r *RadOutput) {
 		Port:       uint16(port),
 	}
 	ctx := context.Background()
-	_, err = neatClient.CreateRaw(ctx, client.DefaultHeader, neatReq)
+	_, err = neatClient.CreateRaw(ctx, client.CopyMap(client.DefaultHeader), neatReq)
 	if err != nil {
 		log.Printf("[%v] %v request neat error: %v", r.Method, r.URL, err)
 		return
@@ -117,6 +119,8 @@ func Load() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&filePath, "file", "f", "test.json", "json file")
 	cmd.Flags().StringVarP(&url, "server-url", "s", "http://127.0.0.1:8000/", "neat server url")
+	cmd.Flags().StringVarP(&username, "server-username", "u", "", "neat server username")
+	cmd.Flags().StringVarP(&password, "server-password", "p", "", "neat server passowrd")
 
 	return cmd
 }

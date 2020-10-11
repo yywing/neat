@@ -1,0 +1,12 @@
+FROM python:3.7 as builder1
+
+COPY ./backend/requirements.txt /requirements.txt
+RUN pip install -r requirements.txt
+COPY ./backend /app
+WORKDIR /app
+RUN python manage.py collectstatic
+
+FROM nginx
+
+COPY --from=builder1 /app/static /app/static
+WORKDIR /app

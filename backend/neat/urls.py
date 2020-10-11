@@ -34,8 +34,6 @@ api_urls = [
     path('token/verify', views.verify_jwt_token, name="token-verify"),
 ]
 
-print(api_urls)
-
 # swagger schema
 schema_view = get_schema_view(
     openapi.Info(

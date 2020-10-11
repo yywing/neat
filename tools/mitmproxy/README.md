@@ -7,5 +7,5 @@
 1. install mitmproxy
 2. command
 ```bash
-mitmproxy -s ./neat.py --set neat_url="your server url"
+mitmproxy -s ./neat.py --set neat_url="your server url" --set neat_username="your username" --set neat_password="your password"
 ```

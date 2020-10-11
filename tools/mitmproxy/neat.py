@@ -14,9 +14,23 @@ class Neat:
             default=None,
             help="neat server url",
         )
+        loader.add_option(
+            name="neat_username",
+            typespec=str,
+            default=None,
+            help="neat server username",
+        )
+        loader.add_option(
+            name="neat_password",
+            typespec=str,
+            default=None,
+            help="neat server password",
+        )
 
     def configure(self, updates):
-        self.client = client.NeatClient(ctx.options.neat_url)
+        self.client = client.NeatClient(
+            ctx.options.neat_url, ctx.options.username, ctx.options.password
+        )
 
     def response(self, flow: mitmproxy.http.HTTPFlow):
         data = model.CreateRaw.request_class(
