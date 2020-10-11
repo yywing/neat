@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework_jwt import views
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
@@ -27,6 +28,13 @@ router = DefaultRouter()
 router.extend(raw_router)
 router.extend(normal_router)
 
+api_urls = [
+    *router.urls,
+    path('token/', views.obtain_jwt_token, name="token"),
+    path('token/verify', views.verify_jwt_token, name="token-verify"),
+]
+
+print(api_urls)
 
 # swagger schema
 schema_view = get_schema_view(
@@ -39,14 +47,17 @@ schema_view = get_schema_view(
     public=True,
 )
 schema_url = [
-    path(r'swagger(?P<format>\.json|\.yaml)', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    path(r'swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path(r'redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path(r'swagger(?P<format>\.json|\.yaml)', schema_view.without_ui(
+        cache_timeout=0), name='schema-json'),
+    path(r'swagger/', schema_view.with_ui('swagger',
+                                          cache_timeout=0), name='schema-swagger-ui'),
+    path(r'redoc/', schema_view.with_ui('redoc',
+                                        cache_timeout=0), name='schema-redoc'),
 ]
 
 
 urlpatterns = [
     *schema_url,
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls)),
+    path('api/', include(api_urls)),
 ]

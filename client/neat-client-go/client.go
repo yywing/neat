@@ -1,12 +1,8 @@
 package client
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 )
 
@@ -18,58 +14,64 @@ const (
 	API_PREFIX = "/api/"
 )
 
-type Request interface {
-	ToPostData() (io.Reader, error)
-}
-
-type BaseRequest struct{}
-
-func (*BaseRequest) toPostData(r interface{}) (io.Reader, error) {
-	bytesData, err := json.Marshal(r)
-
-	if err != nil {
-		return nil, err
-	}
-	return bytes.NewReader(bytesData), nil
-}
-
-type Response interface {
-	ToStruct(io.Reader) error
-}
-
-type BaseResponse struct{}
-
-func (*BaseResponse) toStruct(r interface{}, reader io.Reader) error {
-	body, err := ioutil.ReadAll(reader)
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(body, r)
-	return err
-}
-
 type NeatClient struct {
-	BaseURL string
-	Client  *http.Client
+	BaseURL  string
+	Client   *http.Client
+	Username string
+	Password string
+	token    string
 }
 
-func NewNeatClient(baseUrl string, client *http.Client) *NeatClient {
+func NewNeatClient(baseUrl, username, password string, client *http.Client) *NeatClient {
 	return &NeatClient{
-		BaseURL: baseUrl,
-		Client:  client,
+		BaseURL:  baseUrl,
+		Client:   client,
+		Username: username,
+		Password: password,
 	}
 }
 
-func (c *NeatClient) send(ctx context.Context, method, uri string, exceptStatusCode int, headers map[string]string, request Request, response Response) error {
-	url := JoinURL(c.BaseURL, uri)
+func (c *NeatClient) Auth(ctx context.Context) (string, error) {
+	if c.token != "" {
+		req := &VerifyTokenRequest{
+			Token: c.token,
+		}
+		_, err := c.VerifyToken(ctx, CopyMap(DefaultHeader), req)
+		if err == nil {
+			return c.token, nil
+		}
+	}
+
+	req := &GetTokenRequest{
+		Username: c.Username,
+		Password: c.Password,
+	}
+	resp, err := c.GetToken(ctx, CopyMap(DefaultHeader), req)
+	if err != nil {
+		return "", err
+	}
+	c.token = resp.Token
+	return resp.Token, nil
+}
+
+func (c *NeatClient) send(ctx context.Context, header map[string]string, request Request, response Response) error {
+	requestData := request.GetRequestData()
+	url := JoinURL(c.BaseURL, requestData.URI)
 	//fmt.Printf("%s %s \n", method, url)
 	reader, err := request.ToPostData()
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, method, url, reader)
-	for k, v := range headers {
+	req, err := http.NewRequestWithContext(ctx, requestData.Method, url, reader)
+	for k, v := range header {
 		req.Header.Set(k, v)
+	}
+	if requestData.Auth {
+		token, err := c.Auth(ctx)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Authorization", "JWT "+token)
 	}
 	if err != nil {
 		return err
@@ -78,8 +80,8 @@ func (c *NeatClient) send(ctx context.Context, method, uri string, exceptStatusC
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != exceptStatusCode {
-		return fmt.Errorf("want status code %v, but got %v. response content: %s", exceptStatusCode, resp.StatusCode, resp.Body)
+	if resp.StatusCode != requestData.StatusCode {
+		return fmt.Errorf("want status code %v, but got %v. response content: %s", requestData.StatusCode, resp.StatusCode, resp.Body)
 	}
 	err = response.ToStruct(resp.Body)
 	if err != nil {

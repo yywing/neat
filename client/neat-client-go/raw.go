@@ -13,12 +13,6 @@ const (
 	HTTPS = Scheme("https")
 )
 
-var (
-	CREATE_RAW_URI         = JoinURL(API_PREFIX, "/raw/")
-	CREATE_RAW_METHOD      = http.MethodPost
-	CREATE_RAW_STATUS_CODE = http.StatusCreated
-)
-
 type CreateRawRequest struct {
 	BaseRequest
 	RawRequest  string `json:"raw_request"`
@@ -26,6 +20,18 @@ type CreateRawRequest struct {
 	Scheme      Scheme `json:"scheme"`
 	Host        string `json:"host"`
 	Port        uint16 `json:"port"`
+}
+
+func (r *CreateRawRequest) GetRequestData() *RequestDate {
+	if r.RequestDate == nil {
+		r.RequestDate = &RequestDate{
+			Auth:       true,
+			Method:     http.MethodPost,
+			URI:        JoinURL(API_PREFIX, "/raw/"),
+			StatusCode: http.StatusCreated,
+		}
+	}
+	return r.RequestDate
 }
 
 func (r *CreateRawRequest) ToPostData() (io.Reader, error) {
@@ -50,6 +56,6 @@ func (r *RawResponse) ToStruct(reader io.Reader) error {
 
 func (c *NeatClient) CreateRaw(ctx context.Context, header map[string]string, request *CreateRawRequest) (*RawResponse, error) {
 	response := &RawResponse{}
-	err := c.send(ctx, CREATE_RAW_METHOD, CREATE_RAW_URI, CREATE_RAW_STATUS_CODE, header, request, response)
+	err := c.send(ctx, header, request, response)
 	return response, err
 }

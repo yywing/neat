@@ -26,6 +26,7 @@ class RawRespose(NamedTuple):
 
 class CreateRaw(BaseModel):
     uri = join(API_PREFIX, "raw/")
+    auth = True
     method = HTTPMethod.POST.value
     status_code = HTTPStatus.CREATED
     request_class = CreateRawRequest

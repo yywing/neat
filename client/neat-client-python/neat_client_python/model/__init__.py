@@ -20,6 +20,8 @@ class HTTPSchema(Enum):
 
 
 class BaseModel:
+    auth = True
+
     def to_request(self, base_url, headers):
         url = urljoin(base_url, self.uri)
         data = json.dumps(self.request_data._asdict())
@@ -28,6 +30,7 @@ class BaseModel:
 
     def from_response(self, response: Response):
         if response.status_code != self.status_code:
-            raise UnexpectedStatusCode(params=[self.status_code, response.status_code, response.content])
+            raise UnexpectedStatusCode(
+                params=[self.status_code, response.status_code, response.content])
         data = response.json()
         return self.response_class(**data)

@@ -14,3 +14,13 @@ func JoinURL(base string, paths ...string) string {
 	}
 	return p
 }
+
+// CopyMap performs a deep copy of the given map m.
+func CopyMap(m map[string]string) map[string]string {
+	cp := make(map[string]string)
+	for k, v := range m {
+		cp[k] = v
+	}
+
+	return cp
+}
