@@ -1,0 +1,2 @@
+mitmproxy==5.2
+-e ../../client/neat-client-python
